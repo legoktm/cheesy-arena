@@ -6,6 +6,7 @@ package main
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func TestSetupSchedule(t *testing.T) {
@@ -47,9 +48,10 @@ func TestSetupSchedule(t *testing.T) {
 	assert.Contains(t, recorder.Body.String(), "Failed to publish matches")
 	assert.Nil(t, err)
 	assert.Equal(t, 64, len(matches))
-	assert.Equal(t, int64(1388595600), matches[0].Time.Unix())
-	assert.Equal(t, int64(1388685360), matches[7].Time.Unix())
-	assert.Equal(t, int64(1388782800), matches[24].Time.Unix())
+	location, _ := time.LoadLocation("America/Los_Angeles")
+	assert.Equal(t, int64(1388595600), matches[0].Time.In(location).Unix())
+	assert.Equal(t, int64(1388685360), matches[7].Time.In(location).Unix())
+	assert.Equal(t, int64(1388782800), matches[24].Time.In(location).Unix())
 }
 
 func TestSetupScheduleErrors(t *testing.T) {
