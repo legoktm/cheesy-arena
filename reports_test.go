@@ -44,6 +44,10 @@ func TestRankingsPdfReport(t *testing.T) {
 }
 
 func TestScheduleCsvReport(t *testing.T) {
+	// Tests only pass if your local timezone is set to PST for now
+	if time.Now().Local().Format("MST") != "PST" {
+		t.Skip("Test requires local timezone to be PST")
+	}
 	clearDb()
 	defer clearDb()
 	db, _ = OpenDatabase(testDbPath)
