@@ -43,6 +43,65 @@ func (database *Database) UpdateEliminationSchedule(startTime time.Time) ([]Alli
 	return winner, err
 }
 
+func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, error) {
+	matches, err := database.GetMatchesByType("elimination")
+	if err != nil {
+		return []AllianceTeam{}, err
+	}
+	// So we could have:
+	// 0 matches - nothing yet
+	// 8 matches - QFs
+	// 8+6 matches - SFs
+	// > 14 matches - Fs (W-L-T)
+	if len(matches) == 0 {
+		// do we need the shuffle teams stuff?
+		match1 := createMatch("QF", 4, 1, 1, database.GetTeamsByAlliance(4), database.GetTeamsByAlliance(5))
+		err = database.CreateMatch(match1)
+		if err != nil {
+			return []AllianceTeam{}, err
+		}
+		match2 := createMatch("QF", 4, 1, 2, database.GetTeamsByAlliance(3), database.GetTeamsByAlliance(6))
+		err = database.CreateMatch(match2)
+		if err != nil {
+			return []AllianceTeam{}, err
+		}
+		match3 := createMatch("QF", 4, 1, 3, database.GetTeamsByAlliance(2), database.GetTeamsByAlliance(7))
+		err = database.CreateMatch(match3)
+		if err != nil {
+			return []AllianceTeam{}, err
+		}
+		match4 := createMatch("QF", 4, 1, 4, database.GetTeamsByAlliance(1), database.GetTeamsByAlliance(8))
+		err = database.CreateMatch(match4)
+		if err != nil {
+			return []AllianceTeam{}, err
+		}
+		match5 := createMatch("QF", 4, 1, 5, database.GetTeamsByAlliance(4), database.GetTeamsByAlliance(6))
+		err = database.CreateMatch(match5)
+		if err != nil {
+			return []AllianceTeam{}, err
+		}
+		match6 := createMatch("QF", 4, 1, 6, database.GetTeamsByAlliance(3), database.GetTeamsByAlliance(5))
+		err = database.CreateMatch(match6)
+		if err != nil {
+			return []AllianceTeam{}, err
+		}
+		match7 := createMatch("QF", 4, 1, 7, database.GetTeamsByAlliance(2), database.GetTeamsByAlliance(8))
+		err = database.CreateMatch(match7)
+		if err != nil {
+			return []AllianceTeam{}, err
+		}
+		match8 := createMatch("QF", 4, 1, 8, database.GetTeamsByAlliance(1), database.GetTeamsByAlliance(7))
+		err = database.CreateMatch(match8)
+		if err != nil {
+			return []AllianceTeam{}, err
+		}
+
+	}
+
+	return []AllianceTeam{}, err
+
+}
+
 // Recursively traverses the elimination bracket downwards, creating matches as necessary. Returns the winner
 // of the given round if known.
 func (database *Database) buildEliminationMatchSet(round int, group int, numAlliances int) ([]AllianceTeam, error) {
@@ -70,14 +129,14 @@ func (database *Database) buildEliminationMatchSet(round int, group int, numAlli
 		numDirectAlliances := 4*round - numAlliances
 		if redAllianceNumber <= numDirectAlliances {
 			// The red alliance has a bye or the number of alliances is a power of 2; get from alliance selection.
-			redAlliance, err = database.GetTeamsByAlliance(redAllianceNumber)
+			redAlliance = database.GetTeamsByAlliance(redAllianceNumber)
 			if err != nil {
 				return []AllianceTeam{}, err
 			}
 		}
 		if blueAllianceNumber <= numDirectAlliances {
 			// The blue alliance has a bye or the number of alliances is a power of 2; get from alliance selection.
-			blueAlliance, err = database.GetTeamsByAlliance(blueAllianceNumber)
+			blueAlliance = database.GetTeamsByAlliance(blueAllianceNumber)
 			if err != nil {
 				return []AllianceTeam{}, err
 			}
