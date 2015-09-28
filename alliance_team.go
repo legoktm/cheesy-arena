@@ -17,7 +17,7 @@ func (database *Database) CreateAllianceTeam(allianceTeam *AllianceTeam) error {
 }
 
 // HACK: This should be returning errors. But I'm lazy
-func (database *Database) GetTeamsByAlliance(allianceId int) ([]AllianceTeam) {
+func (database *Database) GetTeamsByAlliance(allianceId int) []AllianceTeam {
 	var allianceTeams []AllianceTeam
 	database.allianceTeamMap.Select(&allianceTeams,
 		"SELECT * FROM alliance_teams WHERE allianceid = ? ORDER BY pickposition", allianceId)
