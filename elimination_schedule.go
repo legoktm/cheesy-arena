@@ -43,10 +43,28 @@ func (database *Database) UpdateEliminationSchedule(startTime time.Time) ([]Alli
 	return winner, err
 }
 
+func (database *Database) maxTeam(t1 int, t2 int, t3 int) (int) {
+	x := t1
+	if ( t2 > x ) {
+		x := t2
+	}
+	if ( t3 > x ) {
+		x := t3
+	}
+
+	return x
+}
+
 func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, error) {
+	completed := 0;
 	matches, err := database.GetMatchesByType("elimination")
 	if err != nil {
 		return []AllianceTeam{}, err
+	}
+	for _, match := range matches {
+		if match.Status == "complete" {
+			completed++
+		}
 	}
 	// So we could have:
 	// 0 matches - nothing yet
@@ -96,6 +114,19 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 			return []AllianceTeam{}, err
 		}
 
+	} else if (completed == 8 && len(matches) == 8) {
+		var rankings = make(map[string]int)
+		for _, match := range matches {
+			result, _ := database.GetMatchResultForMatch(match.Id)
+			result.CorrectEliminationScore()
+			redMax := database.maxTeam(match.Red1, match.Red2, match.Red3)
+			rankings[redMax] = rankings[redMax] + result.RedScoreSummary().Score
+			blueMax := database.maxTeam(match.Blue1, match.Blue2, match.Blue3)
+			rankings[blueMax] = rankings[blueMax] + result.BlueScoreSummary().Score
+		}
+		// Sort rankings by value
+		// Reverse-engineer what alliances advanced (by fetching 1-8 and seeing if the teams are in it)
+		// Then create new matches
 	}
 
 	return []AllianceTeam{}, err
