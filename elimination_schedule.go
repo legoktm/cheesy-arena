@@ -43,18 +43,6 @@ func (database *Database) UpdateEliminationSchedule(startTime time.Time) ([]Alli
 	return winner, err
 }
 
-func (database *Database) maxTeam(t1 int, t2 int, t3 int) (int) {
-	x := t1
-	if ( t2 > x ) {
-		x := t2
-	}
-	if ( t3 > x ) {
-		x := t3
-	}
-
-	return x
-}
-
 func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, error) {
 	completed := 0;
 	matches, err := database.GetMatchesByType("elimination")
@@ -115,14 +103,23 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 		}
 
 	} else if (completed == 8 && len(matches) == 8) {
-		var rankings = make(map[string]int)
+		var alliances = make(map[int]int)
+		allAlliances, _ := database.GetAllAlliances()
+		// Build map of Team -> Alliance # it is on
+		for _, at := range allAlliances {
+			for _, allianceTeam := range at {
+				alliances[allianceTeam.TeamId] = allianceTeam.AllianceId
+			}
+		}
+
+		var rankings = make(map[int]int)
 		for _, match := range matches {
 			result, _ := database.GetMatchResultForMatch(match.Id)
 			result.CorrectEliminationScore()
-			redMax := database.maxTeam(match.Red1, match.Red2, match.Red3)
-			rankings[redMax] = rankings[redMax] + result.RedScoreSummary().Score
-			blueMax := database.maxTeam(match.Blue1, match.Blue2, match.Blue3)
-			rankings[blueMax] = rankings[blueMax] + result.BlueScoreSummary().Score
+			redAlliance := alliances[match.Red1]
+			rankings[redAlliance] = rankings[redAlliance] + result.RedScoreSummary().Score
+			blueAlliance := alliances[match.Blue1]
+			rankings[blueAlliance] = rankings[blueAlliance] + result.BlueScoreSummary().Score
 		}
 		// Sort rankings by value
 		// Reverse-engineer what alliances advanced (by fetching 1-8 and seeing if the teams are in it)
