@@ -7,9 +7,16 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
+	"sort"
 	"strconv"
 	"time"
 )
+
+type ElimAlliance struct {
+	Team  AllianceTeam
+	Score int
+}
 
 const elimMatchSpacingSec = 600
 
@@ -44,7 +51,7 @@ func (database *Database) UpdateEliminationSchedule(startTime time.Time) ([]Alli
 }
 
 func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, error) {
-	completed := 0;
+	completed := 0
 	matches, err := database.GetMatchesByType("elimination")
 	if err != nil {
 		return []AllianceTeam{}, err
@@ -102,32 +109,79 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 			return []AllianceTeam{}, err
 		}
 
-	} else if (completed == 8 && len(matches) == 8) {
-		var alliances = make(map[int]int)
+	} else if completed == 8 && len(matches) == 8 {
+		var alliances = make([]ElimAlliance, 8)
 		allAlliances, _ := database.GetAllAlliances()
-		// Build map of Team -> Alliance # it is on
 		for _, at := range allAlliances {
 			for _, allianceTeam := range at {
-				alliances[allianceTeam.TeamId] = allianceTeam.AllianceId
+				alliances[allianceTeam.TeamId] = ElimAlliance{allianceTeam, 0}
 			}
 		}
 
-		var rankings = make(map[int]int)
 		for _, match := range matches {
 			result, _ := database.GetMatchResultForMatch(match.Id)
 			result.CorrectEliminationScore()
-			redAlliance := alliances[match.Red1]
-			rankings[redAlliance] = rankings[redAlliance] + result.RedScoreSummary().Score
-			blueAlliance := alliances[match.Blue1]
-			rankings[blueAlliance] = rankings[blueAlliance] + result.BlueScoreSummary().Score
+			updateAllianceScore(alliances, match.Red1, result.RedScoreSummary().Score)
+			updateAllianceScore(alliances, match.Blue1, result.BlueScoreSummary().Score)
 		}
-		// Sort rankings by value
-		// Reverse-engineer what alliances advanced (by fetching 1-8 and seeing if the teams are in it)
-		// Then create new matches
+
+		sort.Sort(ByScore(alliances))
+		alliances = alliances[0:4]
+
+		match9 := createMatch("SF", 4, 1, 9, database.GetTeamsByAlliance(alliances[1]), database.GetTeamsByAlliance(alliances[3]))
+		err = database.CreateMatch(match9)
+		if err != nil {
+			return []AllianceTeam{}, err
+		}
+
+		match10 := createMatch("SF", 4, 1, 10, database.GetTeamsByAlliance(alliances[0]), database.GetTeamsByAlliance(alliances[2]))
+		err = database.CreateMatch(match10)
+		if err != nil {
+			return []AllianceTeam{}, err
+		}
+
+		match11 := createMatch("SF", 4, 2, 11, database.GetTeamsByAlliance(alliances[1]), database.GetTeamsByAlliance(alliances[2]))
+		err = database.CreateMatch(match11)
+		if err != nil {
+			return []AllianceTeam{}, err
+		}
+
+		match12 := createMatch("SF", 4, 2, 12, database.GetTeamsByAlliance(alliances[0]), database.GetTeamsByAlliance(alliances[3]))
+		err = database.CreateMatch(match12)
+		if err != nil {
+			return []AllianceTeam{}, err
+		}
+
+		match13 := createMatch("SF", 4, 3, 13, database.GetTeamsByAlliance(alliances[2]), database.GetTeamsByAlliance(alliances[3]))
+		err = database.CreateMatch(match13)
+		if err != nil {
+			return []AllianceTeam{}, err
+		}
+
+		match14 := createMatch("SF", 4, 3, 14, database.GetTeamsByAlliance(alliances[0]), database.GetTeamsByAlliance(alliances[1]))
+		err = database.CreateMatch(match14)
+		if err != nil {
+			return []AllianceTeam{}, err
+		}
 	}
 
 	return []AllianceTeam{}, err
 
+}
+
+type ByScore []ElimAlliance
+
+func (a ByScore) Len() int           { return len(a) }
+func (a ByScore) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByScore) Less(i, j int) bool { return a[i].Score < a[j].Score }
+
+func updateAllianceScore(alliances []ElimAlliance, teamId int, score int) {
+	for _, alliance := range alliances {
+		if alliance.Team.TeamId == teamId {
+			alliance.Score = alliance.Score + score
+			return
+		}
+	}
 }
 
 // Recursively traverses the elimination bracket downwards, creating matches as necessary. Returns the winner
