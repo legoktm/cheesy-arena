@@ -221,6 +221,8 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 					redWins += 1
 				case "B":
 					blueWins += 1
+				case "T":
+					// ?
 				default:
 					return []AllianceTeam{}, fmt.Errorf("Completed match %d has invalid winner '%s'", match.Id, match.Winner)
 				}
