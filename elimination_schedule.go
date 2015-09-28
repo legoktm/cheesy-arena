@@ -10,12 +10,14 @@ import (
 	"math/rand"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 )
 
 type ElimAlliance struct {
-	Team  AllianceTeam
-	Score int
+	Team       AllianceTeam
+	AllianceId int
+	Score      int
 }
 
 const elimMatchSpacingSec = 600
@@ -114,7 +116,7 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 		allAlliances, _ := database.GetAllAlliances()
 		for _, at := range allAlliances {
 			for _, allianceTeam := range at {
-				alliances[allianceTeam.TeamId] = ElimAlliance{allianceTeam, 0}
+				alliances[allianceTeam.TeamId] = ElimAlliance{allianceTeam, allianceTeam.AllianceId, 0}
 			}
 		}
 
@@ -128,40 +130,128 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 		sort.Sort(ByScore(alliances))
 		alliances = alliances[0:4]
 
-		match9 := createMatch("SF", 4, 1, 9, database.GetTeamsByAlliance(alliances[1]), database.GetTeamsByAlliance(alliances[3]))
+		match9 := createMatch("SF", 4, 1, 9, database.GetTeamsByAlliance(alliances[1].AllianceId), database.GetTeamsByAlliance(alliances[3].AllianceId))
 		err = database.CreateMatch(match9)
 		if err != nil {
 			return []AllianceTeam{}, err
 		}
 
-		match10 := createMatch("SF", 4, 1, 10, database.GetTeamsByAlliance(alliances[0]), database.GetTeamsByAlliance(alliances[2]))
+		match10 := createMatch("SF", 4, 1, 10, database.GetTeamsByAlliance(alliances[0].AllianceId), database.GetTeamsByAlliance(alliances[2].AllianceId))
 		err = database.CreateMatch(match10)
 		if err != nil {
 			return []AllianceTeam{}, err
 		}
 
-		match11 := createMatch("SF", 4, 2, 11, database.GetTeamsByAlliance(alliances[1]), database.GetTeamsByAlliance(alliances[2]))
+		match11 := createMatch("SF", 4, 2, 11, database.GetTeamsByAlliance(alliances[1].AllianceId), database.GetTeamsByAlliance(alliances[2].AllianceId))
 		err = database.CreateMatch(match11)
 		if err != nil {
 			return []AllianceTeam{}, err
 		}
 
-		match12 := createMatch("SF", 4, 2, 12, database.GetTeamsByAlliance(alliances[0]), database.GetTeamsByAlliance(alliances[3]))
+		match12 := createMatch("SF", 4, 2, 12, database.GetTeamsByAlliance(alliances[0].AllianceId), database.GetTeamsByAlliance(alliances[3].AllianceId))
 		err = database.CreateMatch(match12)
 		if err != nil {
 			return []AllianceTeam{}, err
 		}
 
-		match13 := createMatch("SF", 4, 3, 13, database.GetTeamsByAlliance(alliances[2]), database.GetTeamsByAlliance(alliances[3]))
+		match13 := createMatch("SF", 4, 3, 13, database.GetTeamsByAlliance(alliances[2].AllianceId), database.GetTeamsByAlliance(alliances[3].AllianceId))
 		err = database.CreateMatch(match13)
 		if err != nil {
 			return []AllianceTeam{}, err
 		}
 
-		match14 := createMatch("SF", 4, 3, 14, database.GetTeamsByAlliance(alliances[0]), database.GetTeamsByAlliance(alliances[1]))
+		match14 := createMatch("SF", 4, 3, 14, database.GetTeamsByAlliance(alliances[0].AllianceId), database.GetTeamsByAlliance(alliances[1].AllianceId))
 		err = database.CreateMatch(match14)
 		if err != nil {
 			return []AllianceTeam{}, err
+		}
+	} else if completed == 14 && len(matches) == 14 {
+		// The finals!
+		var semiAlliances = make([]ElimAlliance, 8)
+		allAlliances, _ := database.GetAllAlliances()
+		for _, at := range allAlliances {
+			for _, allianceTeam := range at {
+				semiAlliances[allianceTeam.TeamId] = ElimAlliance{allianceTeam, allianceTeam.AllianceId, 0}
+			}
+		}
+
+		for _, match := range matches {
+			if strings.HasPrefix(match.DisplayName, "SF") {
+				result, _ := database.GetMatchResultForMatch(match.Id)
+				result.CorrectEliminationScore()
+				updateAllianceScore(semiAlliances, match.Red1, result.RedScoreSummary().Score)
+				updateAllianceScore(semiAlliances, match.Blue1, result.BlueScoreSummary().Score)
+
+			}
+		}
+
+		sort.Sort(ByScore(semiAlliances))
+		redFinalsAlliance := semiAlliances[0]
+		blueFinalsAlliance := semiAlliances[1]
+		match15 := createMatch("F", 4, 1, 15, database.GetTeamsByAlliance(redFinalsAlliance.AllianceId), database.GetTeamsByAlliance(blueFinalsAlliance.AllianceId))
+		err = database.CreateMatch(match15)
+		if err != nil {
+			return []AllianceTeam{}, err
+		}
+		match16 := createMatch("F", 4, 1, 16, database.GetTeamsByAlliance(redFinalsAlliance.AllianceId), database.GetTeamsByAlliance(blueFinalsAlliance.AllianceId))
+		err = database.CreateMatch(match16)
+		if err != nil {
+			return []AllianceTeam{}, err
+		}
+
+	} else if completed > 14 {
+		finalsPlayed := 0
+		redWins := 0
+		blueWins := 0
+		// TODO: Don't copy this
+		var semiAlliances = make([]ElimAlliance, 8)
+		allAlliances, _ := database.GetAllAlliances()
+		for _, at := range allAlliances {
+			for _, allianceTeam := range at {
+				semiAlliances[allianceTeam.TeamId] = ElimAlliance{allianceTeam, allianceTeam.AllianceId, 0}
+			}
+		}
+
+		for _, match := range matches {
+			if match.Status == "complete" && strings.HasPrefix(match.DisplayName, "F") {
+				finalsPlayed += 1
+				// Check who won.
+				switch match.Winner {
+				case "R":
+					redWins += 1
+				case "B":
+					blueWins += 1
+				default:
+					return []AllianceTeam{}, fmt.Errorf("Completed match %d has invalid winner '%s'", match.Id, match.Winner)
+				}
+
+			} else if strings.HasPrefix(match.DisplayName, "SF") {
+				result, _ := database.GetMatchResultForMatch(match.Id)
+				result.CorrectEliminationScore()
+				updateAllianceScore(semiAlliances, match.Red1, result.RedScoreSummary().Score)
+				updateAllianceScore(semiAlliances, match.Blue1, result.BlueScoreSummary().Score)
+
+			}
+
+		}
+
+		sort.Sort(ByScore(semiAlliances))
+		redFinalsAlliance := semiAlliances[0]
+		blueFinalsAlliance := semiAlliances[1]
+
+		if finalsPlayed >= 2 {
+			if redWins == 2 {
+				return database.GetTeamsByAlliance(redFinalsAlliance.AllianceId), nil
+			} else if blueWins == 2 {
+				return database.GetTeamsByAlliance(blueFinalsAlliance.AllianceId), nil
+			}
+			// No one has won 2 yet, add another match
+			matchFinalsNext := createMatch("F", 4, 1, 14+finalsPlayed, database.GetTeamsByAlliance(redFinalsAlliance.AllianceId), database.GetTeamsByAlliance(blueFinalsAlliance.AllianceId))
+			err = database.CreateMatch(matchFinalsNext)
+			if err != nil {
+				return []AllianceTeam{}, err
+			}
+
 		}
 	}
 
