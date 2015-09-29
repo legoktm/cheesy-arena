@@ -115,7 +115,7 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 		allAlliances, _ := database.GetAllAlliances()
 		for _, at := range allAlliances {
 			for _, allianceTeam := range at {
-				alliances[allianceTeam.AllianceId - 1] = ElimAlliance{allianceTeam, allianceTeam.AllianceId, 0}
+				alliances[allianceTeam.AllianceId-1] = ElimAlliance{allianceTeam, allianceTeam.AllianceId, 0}
 			}
 		}
 
