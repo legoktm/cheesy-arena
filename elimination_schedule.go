@@ -49,6 +49,7 @@ func (database *Database) UpdateEliminationSchedule(startTime time.Time) ([]Alli
 }
 
 func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, error) {
+	fmt.Println("yo building 2015 matches")
 	completed := 0
 	matches, err := database.GetMatchesByType("elimination")
 	if err != nil {
@@ -65,6 +66,7 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 	// 8+6 matches - SFs
 	// > 14 matches - Fs (W-L-T)
 	if len(matches) == 0 {
+		fmt.Println("yo building 2015 qf")
 		// do we need the shuffle teams stuff?
 		match1 := createMatch("QF", 4, 1, 1, database.GetTeamsByAlliance(4), database.GetTeamsByAlliance(5))
 		err = database.CreateMatch(match1)
@@ -108,22 +110,29 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 		}
 
 	} else if completed == 8 && len(matches) == 8 {
+		fmt.Println("yo building 2015 sf")
 		var alliances = make([]ElimAlliance, 8)
 		allAlliances, _ := database.GetAllAlliances()
 		for _, at := range allAlliances {
 			for _, allianceTeam := range at {
-				alliances[allianceTeam.TeamId] = ElimAlliance{allianceTeam, allianceTeam.AllianceId, 0}
+				alliances[allianceTeam.AllianceId - 1] = ElimAlliance{allianceTeam, allianceTeam.AllianceId, 0}
 			}
 		}
 
 		for _, match := range matches {
 			result, _ := database.GetMatchResultForMatch(match.Id)
+			fmt.Println(match.Id)
 			result.CorrectEliminationScore()
 			updateAllianceScore(alliances, match.Red1, result.RedScoreSummary().Score)
+			fmt.Println(result.RedScoreSummary().Score)
 			updateAllianceScore(alliances, match.Blue1, result.BlueScoreSummary().Score)
+			fmt.Println(result.BlueScoreSummary().Score)
 		}
 
+		fmt.Println(alliances)
+
 		sort.Sort(ByScore(alliances))
+		fmt.Println(alliances)
 		alliances = alliances[0:4]
 
 		match9 := createMatch("SF", 4, 1, 9, database.GetTeamsByAlliance(alliances[1].AllianceId), database.GetTeamsByAlliance(alliances[3].AllianceId))
@@ -162,6 +171,7 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 			return []AllianceTeam{}, err
 		}
 	} else if completed == 14 && len(matches) == 14 {
+		fmt.Println("yo building 2015 f")
 		// The finals!
 		var semiAlliances = make([]ElimAlliance, 8)
 		allAlliances, _ := database.GetAllAlliances()
@@ -196,6 +206,7 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 		}
 
 	} else if completed > 14 {
+		fmt.Println("yo we're in 2015 finals")
 		finalsPlayed := 0
 		redWins := 0
 		blueWins := 0
@@ -264,12 +275,15 @@ func (a ByScore) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByScore) Less(i, j int) bool { return a[i].Score < a[j].Score }
 
 func updateAllianceScore(alliances []ElimAlliance, teamId int, score int) {
-	for _, alliance := range alliances {
+	theRealIndex := 0
+	for index, alliance := range alliances {
 		if alliance.Team.TeamId == teamId {
-			alliance.Score = alliance.Score + score
-			return
+			theRealIndex = index
+			// alliance.Score = alliance.Score + score
+			// return
 		}
 	}
+	alliances[theRealIndex].Score += score
 }
 
 // Recursively traverses the elimination bracket downwards, creating matches as necessary. Returns the winner
