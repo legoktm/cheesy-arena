@@ -25,11 +25,7 @@ const elimMatchSpacingSec = 600
 // Incrementally creates any elimination matches that can be created, based on the results of alliance
 // selection or prior elimination rounds. Returns the winning alliance once it has been determined.
 func (database *Database) UpdateEliminationSchedule(startTime time.Time) ([]AllianceTeam, error) {
-	alliances, err := database.GetAllAlliances()
-	if err != nil {
-		return []AllianceTeam{}, err
-	}
-	winner, err := database.buildEliminationMatchSet(1, 1, len(alliances))
+	winner, err := database.buildEliminationMatchesFifteen()
 	if err != nil {
 		return []AllianceTeam{}, err
 	}
