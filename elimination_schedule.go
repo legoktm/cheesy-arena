@@ -176,9 +176,10 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 		// The finals!
 		var semiAlliances = make([]ElimAlliance, 8)
 		allAlliances, _ := database.GetAllAlliances()
+
 		for _, at := range allAlliances {
 			for _, allianceTeam := range at {
-				semiAlliances[allianceTeam.TeamId] = ElimAlliance{allianceTeam, allianceTeam.AllianceId, 0}
+				semiAlliances[allianceTeam.AllianceId-1] = ElimAlliance{allianceTeam, allianceTeam.AllianceId, 0}
 			}
 		}
 
@@ -216,7 +217,7 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 		allAlliances, _ := database.GetAllAlliances()
 		for _, at := range allAlliances {
 			for _, allianceTeam := range at {
-				semiAlliances[allianceTeam.TeamId] = ElimAlliance{allianceTeam, allianceTeam.AllianceId, 0}
+				semiAlliances[allianceTeam.AllianceId-1] = ElimAlliance{allianceTeam, allianceTeam.AllianceId, 0}
 			}
 		}
 
@@ -256,7 +257,7 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 				return database.GetTeamsByAlliance(blueFinalsAlliance.AllianceId), nil
 			}
 			// No one has won 2 yet, add another match
-			matchFinalsNext := createMatch("F", 4, 1, 14+finalsPlayed, database.GetTeamsByAlliance(redFinalsAlliance.AllianceId), database.GetTeamsByAlliance(blueFinalsAlliance.AllianceId))
+			matchFinalsNext := createMatch("F", 4, 1, 14+1+finalsPlayed, database.GetTeamsByAlliance(redFinalsAlliance.AllianceId), database.GetTeamsByAlliance(blueFinalsAlliance.AllianceId))
 			err = database.CreateMatch(matchFinalsNext)
 			if err != nil {
 				return []AllianceTeam{}, err
