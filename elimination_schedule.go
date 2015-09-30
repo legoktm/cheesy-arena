@@ -39,6 +39,11 @@ func (database *Database) UpdateEliminationSchedule(startTime time.Time) ([]Alli
 		if match.Status == "complete" {
 			continue
 		}
+		// We populate matches a bit differently, it only happens after the entire round finishes.
+		// So, if the first match we're updating is SF-1 or F-1, make sure there's 10 full minutes beforehand.
+		if matchIndex == 0 && (match.DisplayName == "SF-1" || match.DisplayName == "F-1") {
+			matchIndex++
+		}
 		match.Time = startTime.Add(time.Duration(matchIndex*elimMatchSpacingSec) * time.Second)
 		database.SaveMatch(&match)
 		matchIndex++
