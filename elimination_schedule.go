@@ -148,25 +148,25 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 			return []AllianceTeam{}, err
 		}
 
-		match11 := createMatch("SF", 2, 2, 1, database.GetTeamsByAlliance(alliances[1].AllianceId), database.GetTeamsByAlliance(alliances[2].AllianceId))
+		match11 := createMatch("SF", 2, 2, 3, database.GetTeamsByAlliance(alliances[1].AllianceId), database.GetTeamsByAlliance(alliances[2].AllianceId))
 		err = database.CreateMatch(match11)
 		if err != nil {
 			return []AllianceTeam{}, err
 		}
 
-		match12 := createMatch("SF", 2, 2, 2, database.GetTeamsByAlliance(alliances[0].AllianceId), database.GetTeamsByAlliance(alliances[3].AllianceId))
+		match12 := createMatch("SF", 2, 2, 4, database.GetTeamsByAlliance(alliances[0].AllianceId), database.GetTeamsByAlliance(alliances[3].AllianceId))
 		err = database.CreateMatch(match12)
 		if err != nil {
 			return []AllianceTeam{}, err
 		}
 
-		match13 := createMatch("SF", 2, 3, 1, database.GetTeamsByAlliance(alliances[2].AllianceId), database.GetTeamsByAlliance(alliances[3].AllianceId))
+		match13 := createMatch("SF", 2, 3, 5, database.GetTeamsByAlliance(alliances[2].AllianceId), database.GetTeamsByAlliance(alliances[3].AllianceId))
 		err = database.CreateMatch(match13)
 		if err != nil {
 			return []AllianceTeam{}, err
 		}
 
-		match14 := createMatch("SF", 2, 3, 2, database.GetTeamsByAlliance(alliances[0].AllianceId), database.GetTeamsByAlliance(alliances[1].AllianceId))
+		match14 := createMatch("SF", 2, 3, 6, database.GetTeamsByAlliance(alliances[0].AllianceId), database.GetTeamsByAlliance(alliances[1].AllianceId))
 		err = database.CreateMatch(match14)
 		if err != nil {
 			return []AllianceTeam{}, err
