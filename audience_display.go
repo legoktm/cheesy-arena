@@ -6,11 +6,25 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 	"text/template"
 )
+
+type RankingAlliance struct {
+	Team       AllianceTeam
+	AllianceId int
+
+	Team1  int
+	Team2  int
+	Team3  int
+	Score  int
+	Played int
+}
 
 // Renders the audience display to be chroma keyed over the video feed.
 func AudienceDisplayHandler(w http.ResponseWriter, r *http.Request) {
@@ -33,6 +47,59 @@ func AudienceDisplayHandler(w http.ResponseWriter, r *http.Request) {
 		handleWebErr(w, err)
 		return
 	}
+}
+
+func updateRankingAllianceScore(alliances []RankingAlliance, teamId int, team2 int, team3 int, score int) {
+	theRealIndex := 0
+	for index, alliance := range alliances {
+		if alliance.Team.TeamId == teamId || alliance.Team.TeamId == team2 || alliance.Team.TeamId == team3 {
+			theRealIndex = index
+			// alliance.Score = alliance.Score + score
+			// return
+		}
+	}
+	fmt.Println(alliances[theRealIndex])
+	fmt.Println("old")
+	fmt.Println(alliances[theRealIndex].Score)
+	alliances[theRealIndex].Score += score
+	alliances[theRealIndex].Played++
+	fmt.Println("new")
+	fmt.Println(alliances[theRealIndex].Score)
+}
+
+func GetRankingsForRound(round string, database *Database) []RankingAlliance {
+	var alliances = make([]RankingAlliance, 8)
+	matches, _ := database.GetMatchesByType("elimination")
+	allAlliances, _ := database.GetAllAlliances()
+	for _, at := range allAlliances {
+		for _, allianceTeam := range at {
+			alliTeams := database.GetTeamsByAlliance(allianceTeam.AllianceId)
+			alliances[allianceTeam.AllianceId-1] = RankingAlliance{
+				allianceTeam,
+				allianceTeam.AllianceId,
+				alliTeams[0].TeamId,
+				alliTeams[1].TeamId,
+				alliTeams[2].TeamId,
+				0,
+				0}
+		}
+	}
+
+	for _, match := range matches {
+		if strings.HasPrefix(match.DisplayName, round) && match.Status == "complete" {
+			result, _ := database.GetMatchResultForMatch(match.Id)
+			//fmt.Println(match.Id)
+			result.CorrectEliminationScore()
+			fmt.Println("red: " + strconv.Itoa(match.Red1) + "," + strconv.Itoa(match.Red2) + "," + strconv.Itoa(match.Red3))
+			updateRankingAllianceScore(alliances, match.Red1, match.Red2, match.Red3, result.RedScoreSummary().Score)
+			//fmt.Println(result.RedScoreSummary().Score)
+			fmt.Println("blue: " + strconv.Itoa(match.Blue1) + "," + strconv.Itoa(match.Blue2) + "," + strconv.Itoa(match.Blue3))
+			updateRankingAllianceScore(alliances, match.Blue1, match.Blue2, match.Blue3, result.BlueScoreSummary().Score)
+			//fmt.Println(result.BlueScoreSummary().Score)
+
+		}
+	}
+	return alliances
 }
 
 // The websocket endpoint for the audience display client to receive status updates.
@@ -109,6 +176,8 @@ func AudienceDisplayWebsocketHandler(w http.ResponseWriter, r *http.Request) {
 		BlueScore *ScoreSummary
 	}{mainArena.savedMatch, mainArena.savedMatch.CapitalizedType(),
 		mainArena.savedMatchResult.RedScoreSummary(), mainArena.savedMatchResult.BlueScoreSummary()}
+	fmt.Println(mainArena.savedMatch)
+	fmt.Println(data)
 	err = websocket.Write("setFinalScore", data)
 	if err != nil {
 		log.Printf("Websocket error: %s", err)
@@ -161,13 +230,37 @@ func AudienceDisplayWebsocketHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 				messageType = "setFinalScore"
-				message = struct {
-					Match     *Match
-					MatchName string
-					RedScore  *ScoreSummary
-					BlueScore *ScoreSummary
-				}{mainArena.savedMatch, mainArena.savedMatch.CapitalizedType(),
-					mainArena.savedMatchResult.RedScoreSummary(), mainArena.savedMatchResult.BlueScoreSummary()}
+				match := mainArena.savedMatch
+				if match.Type == "elimination" {
+					var rankingAlliances []RankingAlliance
+					if strings.HasPrefix(match.DisplayName, "QF") {
+						rankingAlliances = GetRankingsForRound("QF", db)
+					} else if strings.HasPrefix(match.DisplayName, "SF") {
+						rankingAlliances = GetRankingsForRound("SF", db)
+					} else {
+						// TODO: What do we do with finals?
+						rankingAlliances = []RankingAlliance{}
+					}
+					//fmt.Println(mainArena.savedMatch)
+					message = struct {
+						Match     *Match
+						MatchName string
+						RedScore  *ScoreSummary
+						BlueScore *ScoreSummary
+						Rankings  []RankingAlliance
+					}{mainArena.savedMatch, mainArena.savedMatch.CapitalizedType(),
+						mainArena.savedMatchResult.RedScoreSummary(), mainArena.savedMatchResult.BlueScoreSummary(), rankingAlliances}
+
+				} else {
+					message = struct {
+						Match     *Match
+						MatchName string
+						RedScore  *ScoreSummary
+						BlueScore *ScoreSummary
+					}{mainArena.savedMatch, mainArena.savedMatch.CapitalizedType(),
+						mainArena.savedMatchResult.RedScoreSummary(), mainArena.savedMatchResult.BlueScoreSummary()}
+
+				}
 			case sound, ok := <-playSoundListener:
 				if !ok {
 					return

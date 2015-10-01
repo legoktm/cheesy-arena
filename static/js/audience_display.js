@@ -58,6 +58,8 @@ var handleRealtimeScore = function(data) {
 
 // Handles a websocket message to populate the final score data.
 var handleSetFinalScore = function(data) {
+  var rankingsCount;
+  console.log(data);
   $("#redFinalScore").text(data.RedScore.Score);
   $("#redFinalTeam1").text(data.Match.Red1);
   $("#redFinalTeam2").text(data.Match.Red2);
@@ -75,6 +77,36 @@ var handleSetFinalScore = function(data) {
   $("#blueFinalCoopertition").text(data.BlueScore.CoopertitionPoints);
   $("#blueFinalFoul").text(data.BlueScore.FoulPoints);
   $("#finalMatchName").text(data.MatchName + " " + data.Match.DisplayName);
+  if (data.Rankings) {
+    data.Rankings.sort(function(a, b){
+      var aR = data.Rankings[a],
+          bR = data.Rankings[b];
+      return Math.round(aR.Score/aR.Played) - Math.round(bR.Score/bR.Played);
+    });
+    if(data.Match.DisplayName.startsWith('SF')) {
+      rankingsCount = 4;
+    } else {
+      // QFs
+      rankingsCount = 8
+    }
+    $.each(data.Rankings, function(i,v){
+      if (i<=rankingsCount) {
+        var text = [
+          v.AllianceId,
+          ". ",
+          v.Team1,
+          ", ",
+          v.Team2,
+          ", ",
+          v.Team3,
+          ". Score: ",
+          Math.round(v.Score/ v.Played)
+        ];
+        console.log(text);
+        $('#rankings-list').append($('<li>').text(text.join('')))
+      }
+    })
+  }
 };
 
 // Handles a websocket message to play a sound to signal match start/stop/etc.
@@ -327,8 +359,8 @@ var initializeSponsorDisplay = function() {
     var start = $('.carousel#sponsor').find('.active').attr('data-interval');
     t = setTimeout("$('.carousel#sponsor').carousel({interval: 1000});", start-1000);
 
-    $('.carousel#sponsor').on('slid.bs.carousel', function () {   
-         clearTimeout(t);  
+    $('.carousel#sponsor').on('slid.bs.carousel', function () {
+         clearTimeout(t);
          var duration = $(this).find('.active').attr('data-interval');
 
          $('.carousel#sponsor').carousel('pause');
@@ -336,11 +368,11 @@ var initializeSponsorDisplay = function() {
     })
 
     $('.carousel-control.right').on('click', function(){
-        clearTimeout(t);   
+        clearTimeout(t);
     });
 
     $('.carousel-control.left').on('click', function(){
-        clearTimeout(t);   
+        clearTimeout(t);
     });
 
   });
