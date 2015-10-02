@@ -57,32 +57,45 @@ var handleRealtimeScore = function(data) {
 };
 
 var handleElimRankingsUpdated = function(data) {
-  var $table = $('#rankingsTable');
+  var $table = $('#rankingsTable'),
+      scoreColumn = "Average Score";
+      isFinals = false;
   if (!$table.length) {
     $table = $('<table>').attr('id', 'rankingsTable');
     $('#rTableContainer').append($table);
   } else {
     $table.html('');
   }
-  $table.append($('<tr>').html(
-      '<th class="rankings-cell">Alliance</th><th class="rankings-cell">Alliance Teams</th><th class="rankings-cell">Average Score</th>'))
-  console.log(data);
-  data.Rankings.sort(function(a, b){
-    var aS = 0, bS = 0;
-    if (a.Played) {
-      aS = Math.round(a.Score/a.Played);
-    }
-    if (b.Played) {
-      bS = Math.round(b.Score/b.Played);
-    }
-    return bS - aS;
-  });
+
   if(data.LastRoundName.startsWith('SF')) {
     rankingsCount = 4;
-  } else {
+  } else if(data.LastRoundName.startsWith('QF')) {
     // QFs
     rankingsCount = 8
+  } else {
+    // Finals
+    isFinals = true;
+    scoreColumn = "Matches Won";
+    rankingsCount = 2;
   }
+  $table.append($('<tr>').html(
+      '<th class="rankings-cell">Alliance</th><th class="rankings-cell">Alliance Teams</th><th class="rankings-cell">' + scoreColumn + '</th>'));
+  console.log(data);
+  var calcScore = function(data){
+    if(isFinals) {
+      // In finals score is just wins
+      return data.Score;
+    } else if (data.Played) {
+      //console.log(data);
+      return Math.round(data.Score/data.Played);
+    } else {
+      return 0;
+    }
+  };
+  data.Rankings.sort(function(a, b){
+    return calcScore(b) - calcScore(a);
+  });
+  var realI = 0;
   $.each(data.Rankings, function(i,v){
     var wrap = function(input) {
       var front = '<td class="rankings-cell">';
@@ -91,15 +104,19 @@ var handleElimRankingsUpdated = function(data) {
       }
       return front + input + '</td>';
     };
-    if (i<=rankingsCount) {
+    if (!v.Planned && !v.Played) {
+      return;
+    }
+    if (realI<rankingsCount) {
       var text = [
         wrap(v.AllianceId),
         wrap([v.Team1, v.Team2, v.Team3].join(' - ')),
-        wrap(Math.round(v.Score/v.Played))
+        wrap(calcScore(v))
       ].join('');
       console.log(text);
       $table.append($('<tr>').html(text));
     }
+    realI++;
   });
 };
 

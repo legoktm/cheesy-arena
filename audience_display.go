@@ -24,6 +24,7 @@ type RankingAlliance struct {
 	Team3  int
 	Score  int
 	Played int
+	Planned int
 }
 
 // Renders the audience display to be chroma keyed over the video feed.
@@ -67,6 +68,16 @@ func updateRankingAllianceScore(alliances []RankingAlliance, teamId int, team2 i
 	fmt.Println(alliances[theRealIndex].Score)
 }
 
+func updateRankingAlliancePlanned(alliances []RankingAlliance, teamId int, team2 int, team3 int) {
+	theRealIndex := 0
+	for index, alliance := range alliances {
+		if alliance.Team.TeamId == teamId || alliance.Team.TeamId == team2 || alliance.Team.TeamId == team3 {
+			theRealIndex = index
+		}
+	}
+	alliances[theRealIndex].Planned++
+}
+
 func GetLatestRankings(database *Database) ([]RankingAlliance, Match) {
 	matches, _ := database.GetMatchesByType("elimination")
 	var last Match
@@ -81,12 +92,15 @@ func GetLatestRankings(database *Database) ([]RankingAlliance, Match) {
 	} else if strings.HasPrefix(last.DisplayName, "QF") {
 		return GetRankingsForRound("QF", database), last
 	} else {
-		return []RankingAlliance{}, last
+		return GetRankingsForRound("F", database), last
 	}
 }
 
 func GetRankingsForRound(round string, database *Database) []RankingAlliance {
 	var alliances = make([]RankingAlliance, 8)
+	var redScore int
+	var blueScore int
+	isFinals := round == "F"
 	matches, _ := database.GetMatchesByType("elimination")
 	allAlliances, _ := database.GetAllAlliances()
 	for _, at := range allAlliances {
@@ -99,22 +113,46 @@ func GetRankingsForRound(round string, database *Database) []RankingAlliance {
 				alliTeams[1].TeamId,
 				alliTeams[2].TeamId,
 				0,
-				0}
+				0, 0}
 		}
 	}
 
 	for _, match := range matches {
-		if strings.HasPrefix(match.DisplayName, round) && match.Status == "complete" {
-			result, _ := database.GetMatchResultForMatch(match.Id)
-			//fmt.Println(match.Id)
-			result.CorrectEliminationScore()
-			fmt.Println("red: " + strconv.Itoa(match.Red1) + "," + strconv.Itoa(match.Red2) + "," + strconv.Itoa(match.Red3))
-			updateRankingAllianceScore(alliances, match.Red1, match.Red2, match.Red3, result.RedScoreSummary().Score)
-			//fmt.Println(result.RedScoreSummary().Score)
-			fmt.Println("blue: " + strconv.Itoa(match.Blue1) + "," + strconv.Itoa(match.Blue2) + "," + strconv.Itoa(match.Blue3))
-			updateRankingAllianceScore(alliances, match.Blue1, match.Blue2, match.Blue3, result.BlueScoreSummary().Score)
-			//fmt.Println(result.BlueScoreSummary().Score)
+		if strings.HasPrefix(match.DisplayName, round) {
+			if match.Status == "complete" {
+				result, _ := database.GetMatchResultForMatch(match.Id)
+				//fmt.Println(match.Id)
+				result.CorrectEliminationScore()
+				fmt.Println("red: " + strconv.Itoa(match.Red1) + "," + strconv.Itoa(match.Red2) + "," + strconv.Itoa(match.Red3))
+				if isFinals {
+					if match.Winner == "R" {
+						redScore = 1
+					} else {
+						redScore = 0
+					}
+				} else {
+					redScore = result.RedScoreSummary().Score
+				}
+				updateRankingAllianceScore(alliances, match.Red1, match.Red2, match.Red3, redScore)
+				//fmt.Println(result.RedScoreSummary().Score)
+				fmt.Println("blue: " + strconv.Itoa(match.Blue1) + "," + strconv.Itoa(match.Blue2) + "," + strconv.Itoa(match.Blue3))
+				if isFinals {
+					if match.Winner == "B" {
+						blueScore = 1
+					} else {
+						blueScore = 0
+					}
+				} else {
+					blueScore = result.BlueScoreSummary().Score
+				}
 
+				updateRankingAllianceScore(alliances, match.Blue1, match.Blue2, match.Blue3, blueScore)
+				//fmt.Println(result.BlueScoreSummary().Score)
+			} else {
+				updateRankingAlliancePlanned(alliances, match.Red1, match.Red2, match.Red3)
+				updateRankingAlliancePlanned(alliances, match.Blue1, match.Blue2, match.Blue3)
+
+			}
 		}
 	}
 	return alliances
