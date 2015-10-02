@@ -87,7 +87,7 @@ var handleElimRankingsUpdated = function(data) {
       return data.Score;
     } else if (data.Played) {
       //console.log(data);
-      return Math.round(data.Score/data.Played);
+      return data.Score/data.Played;
     } else {
       return 0;
     }
@@ -111,7 +111,7 @@ var handleElimRankingsUpdated = function(data) {
       var text = [
         wrap(v.AllianceId),
         wrap([v.Team1, v.Team2, v.Team3].join(' - ')),
-        wrap(calcScore(v))
+        wrap(Math.round(calcScore(v)))
       ].join('');
       console.log(text);
       $table.append($('<tr>').html(text));
