@@ -511,6 +511,9 @@ func CommitMatchScore(match *Match, matchResult *MatchResult, loadToShowBuffer b
 		if err != nil {
 			return err
 		}
+
+		// And update the rankings
+		mainArena.elimRankingsUpdatedNotifier.Notify(nil)
 	}
 
 	if eventSettings.TbaPublishingEnabled && match.Type != "practice" {

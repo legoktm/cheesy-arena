@@ -57,13 +57,54 @@ var handleRealtimeScore = function(data) {
 };
 
 var handleElimRankingsUpdated = function(data) {
+  var $table = $('#rankingsTable');
+  if (!$table.length) {
+    $table = $('<table>').attr('id', 'rankingsTable');
+    $('#rTableContainer').append($table);
+  } else {
+    $table.html('');
+  }
+  $table.append($('<tr>').html(
+      '<th class="rankings-cell">Alliance</th><th class="rankings-cell">Alliance Teams</th><th class="rankings-cell">Average Score</th>'))
   console.log(data);
+  data.Rankings.sort(function(a, b){
+    var aS = 0, bS = 0;
+    if (a.Played) {
+      aS = Math.round(a.Score/a.Played);
+    }
+    if (b.Played) {
+      bS = Math.round(b.Score/b.Played);
+    }
+    return bS - aS;
+  });
+  if(data.LastRoundName.startsWith('SF')) {
+    rankingsCount = 4;
+  } else {
+    // QFs
+    rankingsCount = 8
+  }
+  $.each(data.Rankings, function(i,v){
+    var wrap = function(input) {
+      var front = '<td class="rankings-cell">';
+      if (rankingsCount/2 == i+1) {
+        front = '<td class="rankings-cell bottom-border">';
+      }
+      return front + input + '</td>';
+    };
+    if (i<=rankingsCount) {
+      var text = [
+        wrap(v.AllianceId),
+        wrap([v.Team1, v.Team2, v.Team3].join(' - ')),
+        wrap(Math.round(v.Score/v.Played))
+      ].join('');
+      console.log(text);
+      $table.append($('<tr>').html(text));
+    }
+  });
 };
 
 // Handles a websocket message to populate the final score data.
 var handleSetFinalScore = function(data) {
-  var rankingsCount;
-  //console.log(data);
   $("#redFinalScore").text(data.RedScore.Score);
   $("#redFinalTeam1").text(data.Match.Red1);
   $("#redFinalTeam2").text(data.Match.Red2);
@@ -81,36 +122,6 @@ var handleSetFinalScore = function(data) {
   $("#blueFinalCoopertition").text(data.BlueScore.CoopertitionPoints);
   $("#blueFinalFoul").text(data.BlueScore.FoulPoints);
   $("#finalMatchName").text(data.MatchName + " " + data.Match.DisplayName);
-  if (data.Rankings) {
-    data.Rankings.sort(function(a, b){
-      var aR = data.Rankings[a],
-          bR = data.Rankings[b];
-      return Math.round(aR.Score/aR.Played) - Math.round(bR.Score/bR.Played);
-    });
-    if(data.Match.DisplayName.startsWith('SF')) {
-      rankingsCount = 4;
-    } else {
-      // QFs
-      rankingsCount = 8
-    }
-    $.each(data.Rankings, function(i,v){
-      if (i<=rankingsCount) {
-        var text = [
-          v.AllianceId,
-          ". ",
-          v.Team1,
-          ", ",
-          v.Team2,
-          ", ",
-          v.Team3,
-          ". Score: ",
-          Math.round(v.Score/ v.Played)
-        ];
-        console.log(text);
-        $('#rankings-list').append($('<li>').text(text.join('')))
-      }
-    })
-  }
 };
 
 // Handles a websocket message to play a sound to signal match start/stop/etc.
@@ -265,7 +276,36 @@ var transitionScoreToBlank = function(callback) {
   transitionScoreToLogo(function() {
     transitionLogoToBlank(callback);
   });
-}
+};
+
+var transitionLogoToRankings = function(callback) {
+  $(".blindsCenter.full").transition({queue: false, top: "-350px"}, 625, "ease");
+  $("#rankings").show();
+  $("#rankings").transition({queue: false, opacity: 1}, 1000, "ease", callback);
+  // FIXME
+  $('.blindsCenter.full').hide();
+};
+
+var transitionBlankToRankings = function(callback) {
+  transitionBlankToLogo(function() {
+    setTimeout(function() { transitionLogoToRankings(callback); }, 50);
+  });
+};
+
+var transitionRankingsToLogo = function(callback) {
+  // FIXME
+  $('.blindsCenter.full').show();
+  $("#rankings").transition({queue: false, opacity: 0}, 500, "ease", function(){
+    $("#rankings").hide();
+  });
+  $(".blindsCenter.full").transition({queue: false, top: 0}, 625, "ease", callback);
+};
+
+var transitionRankingsToBlank = function(callback) {
+  transitionRankingsToLogo(function() {
+    transitionLogoToBlank(callback);
+  });
+};
 
 var transitionBlankToAllianceSelection = function(callback) {
   $('#allianceSelectionCentering').css("right","-60em").show();
@@ -406,6 +446,7 @@ $(function() {
       intro: transitionBlankToIntro,
       match: transitionBlankToInMatch,
       score: transitionBlankToScore,
+      rankings: transitionBlankToRankings,
       logo: transitionBlankToLogo,
       sponsor: transitionBlankToSponsor,
       allianceSelection: transitionBlankToAllianceSelection,
@@ -424,9 +465,14 @@ $(function() {
       logo: transitionScoreToLogo,
       sponsor: transitionScoreToSponsor
     },
+    rankings: {
+      blank: transitionRankingsToBlank,
+      logo: transitionRankingsToLogo
+    },
     logo: {
       blank: transitionLogoToBlank,
       score: transitionLogoToScore,
+      rankings: transitionLogoToRankings,
       sponsor: transitionLogoToSponsor
     },
     sponsor: {
