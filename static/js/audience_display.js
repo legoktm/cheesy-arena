@@ -56,10 +56,14 @@ var handleRealtimeScore = function(data) {
   $("#blueScoreNumber").text(data.BlueScore);
 };
 
+var handleElimRankingsUpdated = function(data) {
+  console.log(data);
+};
+
 // Handles a websocket message to populate the final score data.
 var handleSetFinalScore = function(data) {
   var rankingsCount;
-  console.log(data);
+  //console.log(data);
   $("#redFinalScore").text(data.RedScore.Score);
   $("#redFinalTeam1").text(data.Match.Red1);
   $("#redFinalTeam2").text(data.Match.Red2);
@@ -387,6 +391,7 @@ $(function() {
     matchTime: function(event) { handleMatchTime(event.data); },
     realtimeScore: function(event) { handleRealtimeScore(event.data); },
     setFinalScore: function(event) { handleSetFinalScore(event.data); },
+    elimRankingsUpdated: function(event) { handleElimRankingsUpdated(event.data); },
     playSound: function(event) { handlePlaySound(event.data); },
     allianceSelection: function(event) { handleAllianceSelection(event.data); },
     lowerThird: function(event) { handleLowerThird(event.data); }

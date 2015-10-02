@@ -67,6 +67,24 @@ func updateRankingAllianceScore(alliances []RankingAlliance, teamId int, team2 i
 	fmt.Println(alliances[theRealIndex].Score)
 }
 
+func GetLatestRankings(database *Database) ([]RankingAlliance, Match) {
+	matches, _ := database.GetMatchesByType("elimination")
+	var last Match
+	for _, match := range matches {
+		if match.Status == "complete" {
+			last = match
+		}
+	}
+
+	if strings.HasPrefix(last.DisplayName, "SF") {
+		return GetRankingsForRound("SF", database), last
+	} else if strings.HasPrefix(last.DisplayName, "QF") {
+		return GetRankingsForRound("QF", database), last
+	} else {
+		return []RankingAlliance{}, last
+	}
+}
+
 func GetRankingsForRound(round string, database *Database) []RankingAlliance {
 	var alliances = make([]RankingAlliance, 8)
 	matches, _ := database.GetMatchesByType("elimination")
@@ -125,6 +143,8 @@ func AudienceDisplayWebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	defer close(realtimeScoreListener)
 	scorePostedListener := mainArena.scorePostedNotifier.Listen()
 	defer close(scorePostedListener)
+	elimRankingsUpdatedListener := mainArena.elimRankingsUpdatedNotifier.Listen()
+	defer close(elimRankingsUpdatedListener)
 	playSoundListener := mainArena.playSoundNotifier.Listen()
 	defer close(playSoundListener)
 	allianceSelectionListener := mainArena.allianceSelectionNotifier.Listen()
@@ -183,6 +203,15 @@ func AudienceDisplayWebsocketHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Websocket error: %s", err)
 		return
 	}
+	latestRankings, lastMatch := GetLatestRankings(db)
+	data = struct {
+		LastRoundName string
+		Rankings []RankingAlliance
+	}{lastMatch.DisplayName, latestRankings}
+	err = websocket.Write("elimRankingsUpdated", data)
+	if err != nil {
+		log.Printf("Websocket error: %s", err)
+	}
 	err = websocket.Write("allianceSelection", cachedAlliances)
 	if err != nil {
 		log.Printf("Websocket error: %s", err)
@@ -225,42 +254,29 @@ func AudienceDisplayWebsocketHandler(w http.ResponseWriter, r *http.Request) {
 					RedScore  int
 					BlueScore int
 				}{mainArena.redRealtimeScore.Score(), mainArena.blueRealtimeScore.Score()}
+			case _, ok := <-elimRankingsUpdatedListener:
+				if !ok {
+					return
+				}
+				messageType = "elimRankingsUpdated"
+				latestRankings, lastMatch := GetLatestRankings(db)
+				message = struct {
+					LastRoundName string
+					Rankings []RankingAlliance
+				}{lastMatch.DisplayName, latestRankings}
+				fmt.Println(message)
 			case _, ok := <-scorePostedListener:
 				if !ok {
 					return
 				}
 				messageType = "setFinalScore"
-				match := mainArena.savedMatch
-				if match.Type == "elimination" {
-					var rankingAlliances []RankingAlliance
-					if strings.HasPrefix(match.DisplayName, "QF") {
-						rankingAlliances = GetRankingsForRound("QF", db)
-					} else if strings.HasPrefix(match.DisplayName, "SF") {
-						rankingAlliances = GetRankingsForRound("SF", db)
-					} else {
-						// TODO: What do we do with finals?
-						rankingAlliances = []RankingAlliance{}
-					}
-					//fmt.Println(mainArena.savedMatch)
-					message = struct {
-						Match     *Match
-						MatchName string
-						RedScore  *ScoreSummary
-						BlueScore *ScoreSummary
-						Rankings  []RankingAlliance
-					}{mainArena.savedMatch, mainArena.savedMatch.CapitalizedType(),
-						mainArena.savedMatchResult.RedScoreSummary(), mainArena.savedMatchResult.BlueScoreSummary(), rankingAlliances}
-
-				} else {
-					message = struct {
-						Match     *Match
-						MatchName string
-						RedScore  *ScoreSummary
-						BlueScore *ScoreSummary
-					}{mainArena.savedMatch, mainArena.savedMatch.CapitalizedType(),
-						mainArena.savedMatchResult.RedScoreSummary(), mainArena.savedMatchResult.BlueScoreSummary()}
-
-				}
+				message = struct {
+					Match     *Match
+					MatchName string
+					RedScore  *ScoreSummary
+					BlueScore *ScoreSummary
+				}{mainArena.savedMatch, mainArena.savedMatch.CapitalizedType(),
+					mainArena.savedMatchResult.RedScoreSummary(), mainArena.savedMatchResult.BlueScoreSummary()}
 			case sound, ok := <-playSoundListener:
 				if !ok {
 					return

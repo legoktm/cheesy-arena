@@ -70,6 +70,7 @@ type Arena struct {
 	scoringStatusNotifier          *Notifier
 	realtimeScoreNotifier          *Notifier
 	scorePostedNotifier            *Notifier
+	elimRankingsUpdatedNotifier    *Notifier
 	audienceDisplayNotifier        *Notifier
 	playSoundNotifier              *Notifier
 	allianceStationDisplayNotifier *Notifier
@@ -118,6 +119,7 @@ func (arena *Arena) Setup() {
 	arena.scoringStatusNotifier = NewNotifier()
 	arena.realtimeScoreNotifier = NewNotifier()
 	arena.scorePostedNotifier = NewNotifier()
+	arena.elimRankingsUpdatedNotifier = NewNotifier()
 	arena.audienceDisplayNotifier = NewNotifier()
 	arena.playSoundNotifier = NewNotifier()
 	arena.allianceStationDisplayNotifier = NewNotifier()
