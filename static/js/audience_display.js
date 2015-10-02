@@ -111,7 +111,7 @@ var handleElimRankingsUpdated = function(data) {
       var text = [
         wrap(v.AllianceId),
         wrap([v.Team1, v.Team2, v.Team3].join(' - ')),
-        wrap(Math.round(calcScore(v)))
+        wrap(isFinals ? calcScore(v) : calcScore(v).toFixed(2))
       ].join('');
       console.log(text);
       $table.append($('<tr>').html(text));
