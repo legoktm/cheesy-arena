@@ -19,11 +19,11 @@ type RankingAlliance struct {
 	Team       AllianceTeam
 	AllianceId int
 
-	Team1  int
-	Team2  int
-	Team3  int
-	Score  int
-	Played int
+	Team1   int
+	Team2   int
+	Team3   int
+	Score   int
+	Played  int
 	Planned int
 }
 
@@ -244,7 +244,7 @@ func AudienceDisplayWebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	latestRankings, lastMatch := GetLatestRankings(db)
 	data = struct {
 		LastRoundName string
-		Rankings []RankingAlliance
+		Rankings      []RankingAlliance
 	}{lastMatch.DisplayName, latestRankings}
 	err = websocket.Write("elimRankingsUpdated", data)
 	if err != nil {
@@ -300,7 +300,7 @@ func AudienceDisplayWebsocketHandler(w http.ResponseWriter, r *http.Request) {
 				latestRankings, lastMatch := GetLatestRankings(db)
 				message = struct {
 					LastRoundName string
-					Rankings []RankingAlliance
+					Rankings      []RankingAlliance
 				}{lastMatch.DisplayName, latestRankings}
 				fmt.Println(message)
 			case _, ok := <-scorePostedListener:
