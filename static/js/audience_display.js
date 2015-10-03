@@ -67,9 +67,9 @@ var handleElimRankingsUpdated = function(data) {
     $table.html('');
   }
 
-  if(data.LastRoundName.startsWith('SF')) {
+  if(data.LastRoundName.indexOf('SF') === 0) {
     rankingsCount = 4;
-  } else if(data.LastRoundName.startsWith('QF')) {
+  } else if(data.LastRoundName.indexOf('QF') === 0) {
     // QFs
     rankingsCount = 8
   } else {
