@@ -16,7 +16,7 @@ import (
 type ElimAlliance struct {
 	Team       AllianceTeam
 	AllianceId int
-	Score      int
+	Score      ScoreSummary
 }
 
 const elimMatchSpacingSec = 600
@@ -119,7 +119,7 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 		allAlliances, _ := database.GetAllAlliances()
 		for _, at := range allAlliances {
 			for _, allianceTeam := range at {
-				alliances[allianceTeam.AllianceId-1] = ElimAlliance{allianceTeam, allianceTeam.AllianceId, 0}
+				alliances[allianceTeam.AllianceId-1] = ElimAlliance{allianceTeam, allianceTeam.AllianceId, ScoreSummary{}}
 			}
 		}
 
@@ -128,10 +128,10 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 			//fmt.Println(match.Id)
 			result.CorrectEliminationScore()
 			fmt.Println("red: " + strconv.Itoa(match.Red1) + "," + strconv.Itoa(match.Red2) + "," + strconv.Itoa(match.Red3))
-			updateAllianceScore(alliances, match.Red1, match.Red2, match.Red3, result.RedScoreSummary().Score)
+			updateAllianceScore(alliances, match.Red1, match.Red2, match.Red3, result.RedScoreSummary())
 			//fmt.Println(result.RedScoreSummary().Score)
 			fmt.Println("blue: " + strconv.Itoa(match.Blue1) + "," + strconv.Itoa(match.Blue2) + "," + strconv.Itoa(match.Blue3))
-			updateAllianceScore(alliances, match.Blue1, match.Blue2, match.Blue3, result.BlueScoreSummary().Score)
+			updateAllianceScore(alliances, match.Blue1, match.Blue2, match.Blue3, result.BlueScoreSummary())
 			//fmt.Println(result.BlueScoreSummary().Score)
 		}
 
@@ -184,7 +184,7 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 
 		for _, at := range allAlliances {
 			for _, allianceTeam := range at {
-				semiAlliances[allianceTeam.AllianceId-1] = ElimAlliance{allianceTeam, allianceTeam.AllianceId, 0}
+				semiAlliances[allianceTeam.AllianceId-1] = ElimAlliance{allianceTeam, allianceTeam.AllianceId, ScoreSummary{}}
 			}
 		}
 
@@ -192,8 +192,8 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 			if strings.HasPrefix(match.DisplayName, "SF") {
 				result, _ := database.GetMatchResultForMatch(match.Id)
 				result.CorrectEliminationScore()
-				updateAllianceScore(semiAlliances, match.Red1, match.Red2, match.Red3, result.RedScoreSummary().Score)
-				updateAllianceScore(semiAlliances, match.Blue1, match.Blue2, match.Blue3, result.BlueScoreSummary().Score)
+				updateAllianceScore(semiAlliances, match.Red1, match.Red2, match.Red3, result.RedScoreSummary())
+				updateAllianceScore(semiAlliances, match.Blue1, match.Blue2, match.Blue3, result.BlueScoreSummary())
 
 			}
 		}
@@ -222,7 +222,7 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 		allAlliances, _ := database.GetAllAlliances()
 		for _, at := range allAlliances {
 			for _, allianceTeam := range at {
-				semiAlliances[allianceTeam.AllianceId-1] = ElimAlliance{allianceTeam, allianceTeam.AllianceId, 0}
+				semiAlliances[allianceTeam.AllianceId-1] = ElimAlliance{allianceTeam, allianceTeam.AllianceId, ScoreSummary{}}
 			}
 		}
 
@@ -244,8 +244,8 @@ func (database *Database) buildEliminationMatchesFifteen() ([]AllianceTeam, erro
 			} else if strings.HasPrefix(match.DisplayName, "SF") {
 				result, _ := database.GetMatchResultForMatch(match.Id)
 				result.CorrectEliminationScore()
-				updateAllianceScore(semiAlliances, match.Red1, match.Red2, match.Red3, result.RedScoreSummary().Score)
-				updateAllianceScore(semiAlliances, match.Blue1, match.Blue2, match.Blue3, result.BlueScoreSummary().Score)
+				updateAllianceScore(semiAlliances, match.Red1, match.Red2, match.Red3, result.RedScoreSummary())
+				updateAllianceScore(semiAlliances, match.Blue1, match.Blue2, match.Blue3, result.BlueScoreSummary())
 
 			}
 
@@ -279,9 +279,28 @@ type ByScore []ElimAlliance
 
 func (a ByScore) Len() int           { return len(a) }
 func (a ByScore) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByScore) Less(i, j int) bool { return a[i].Score > a[j].Score }
+func (a ByScore) Less(i, j int) bool {
+	if a[i].Score.Score != a[j].Score.Score {
+		return a[i].Score.Score > a[j].Score.Score;
+	}
+	if a[i].Score.AutoPoints != a[j].Score.AutoPoints {
+		return a[i].Score.AutoPoints > a[j].Score.AutoPoints;
+	}
+	if a[i].Score.ContainerPoints != a[j].Score.ContainerPoints {
+		return a[i].Score.ContainerPoints > a[j].Score.ContainerPoints
+	}
+	if a[i].Score.TotePoints != a[j].Score.TotePoints {
+		return a[i].Score.TotePoints > a[j].Score.TotePoints
+	}
+	if a[i].Score.LitterPoints != a[j].Score.LitterPoints {
+		return a[i].Score.LitterPoints > a[j].Score.LitterPoints
+	}
 
-func updateAllianceScore(alliances []ElimAlliance, teamId int, team2 int, team3 int, score int) {
+	return a[i].AllianceId < a[j].AllianceId;
+
+}
+
+func updateAllianceScore(alliances []ElimAlliance, teamId int, team2 int, team3 int, score *ScoreSummary) {
 	theRealIndex := 0
 	for index, alliance := range alliances {
 		if alliance.Team.TeamId == teamId || alliance.Team.TeamId == team2 || alliance.Team.TeamId == team3 {
@@ -293,7 +312,7 @@ func updateAllianceScore(alliances []ElimAlliance, teamId int, team2 int, team3 
 	fmt.Println(alliances[theRealIndex])
 	fmt.Println("old")
 	fmt.Println(alliances[theRealIndex].Score)
-	alliances[theRealIndex].Score += score
+	alliances[theRealIndex].Score = CombineSummaries(alliances[theRealIndex].Score, score)
 	fmt.Println("new")
 	fmt.Println(alliances[theRealIndex].Score)
 }

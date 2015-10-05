@@ -64,6 +64,19 @@ type ScoreSummary struct {
 	Score              int
 }
 
+func CombineSummaries(s1 ScoreSummary, s2 *ScoreSummary) ScoreSummary {
+	n := ScoreSummary{
+		s1.CoopertitionPoints + s2.CoopertitionPoints,
+		s1.AutoPoints + s2.AutoPoints,
+		s1.ContainerPoints + s2.ContainerPoints,
+		s1.TotePoints + s1.TotePoints,
+		s1.LitterPoints + s2.LitterPoints,
+		s1.StackPoints + s2.StackPoints,
+		s1.FoulPoints + s2.FoulPoints,
+		s1.Score + s2.Score}
+	return n
+}
+
 // Returns a new match result object with empty slices instead of nil.
 func NewMatchResult() *MatchResult {
 	matchResult := new(MatchResult)
