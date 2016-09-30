@@ -101,11 +101,20 @@ var handlePlaySound = function(sound) {
 
 // Handles a websocket message to update the alliance selection screen.
 var handleAllianceSelection = function(alliances) {
-  if (alliances) {
-    $.each(alliances, function(k, v) {
+  if (alliances.Alliances) {
+    $.each(alliances.Alliances, function(k, v) {
       v.Index = k + 1;
     });
-    $("#allianceSelection").html(allianceSelectionTemplate(alliances));
+    $("#allianceSelection").html(allianceSelectionTemplate(alliances.Alliances));
+  if (alliances.Rankings) {
+    var text = '';
+    $.each(alliances.Rankings, function(i, v) {
+      if (!v.Picked) {
+        text += v.Rank + '. ' + v.TeamId + '<br />';
+      }
+    });
+    $("#allianceRankings").html(text);
+  }
   }
 };
 
@@ -250,10 +259,13 @@ var transitionScoreToBlank = function(callback) {
 var transitionBlankToAllianceSelection = function(callback) {
   $('#allianceSelectionCentering').css("right","-60em").show();
   $('#allianceSelectionCentering').transition({queue: false, right: "3em"}, 500, "ease", callback);
+  $('#allianceRankingsCentering').css('left', '-60em').show();
+  $('#allianceRankingsCentering').transition({queue: false, left: "3em"}, 500, "ease");
 };
 
 var transitionAllianceSelectionToBlank = function(callback) {
   $('#allianceSelectionCentering').transition({queue: false, right: "-60em"}, 500, "ease", callback);
+  $('#allianceRankingsCentering').transition({queue:false, left: "-60em"}, 500, "ease");
 };
 
 var transitionBlankToLowerThird = function(callback) {
