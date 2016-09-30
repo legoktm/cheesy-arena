@@ -10,6 +10,12 @@ import (
 	"github.com/Team254/cheesy-arena/game"
 )
 
+type RankedTeam struct {
+        Rank   int
+        TeamId int
+        Picked bool
+}
+
 type RankingDb struct {
 	TeamId            int
 	Rank              int

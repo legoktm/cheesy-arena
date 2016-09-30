@@ -66,6 +66,7 @@ type Arena struct {
 	SavedMatchResult           *model.MatchResult
 	AllianceStationDisplayMode string
 	AllianceSelectionAlliances [][]model.AllianceTeam
+	AllianceSelectionRankings []*model.RankedTeam
 	LowerThird                 *model.LowerThird
 	MuteMatchSounds            bool
 	matchAborted               bool

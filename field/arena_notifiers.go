@@ -81,7 +81,10 @@ func (arena *Arena) configureNotifiers() {
 }
 
 func (arena *Arena) generateAllianceSelectionMessage() interface{} {
-	return &arena.AllianceSelectionAlliances
+	return struct {
+		Alliances *[][]model.AllianceTeam
+		Rankings  []*model.RankedTeam
+	}{&arena.AllianceSelectionAlliances, arena.AllianceSelectionRankings}
 }
 
 func (arena *Arena) generateAllianceStationDisplayModeMessage() interface{} {
