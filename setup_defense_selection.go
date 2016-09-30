@@ -38,7 +38,7 @@ func DefenseSelectionPostHandler(w http.ResponseWriter, r *http.Request) {
 		r.PostFormValue("redDefense3"), r.PostFormValue("redDefense4"), r.PostFormValue("redDefense5")})
 	if redErr == nil {
 		match.RedDefense1 = "LB"
-		match.RedDefense2 = r.PostFormValue("redDefense2")
+		match.RedDefense2 = "CDF"
 		match.RedDefense3 = r.PostFormValue("redDefense3")
 		match.RedDefense4 = r.PostFormValue("redDefense4")
 		match.RedDefense5 = r.PostFormValue("redDefense5")
@@ -47,7 +47,7 @@ func DefenseSelectionPostHandler(w http.ResponseWriter, r *http.Request) {
 		r.PostFormValue("blueDefense3"), r.PostFormValue("blueDefense4"), r.PostFormValue("blueDefense5")})
 	if blueErr == nil {
 		match.BlueDefense1 = "LB"
-		match.BlueDefense2 = r.PostFormValue("blueDefense2")
+		match.BlueDefense2 = "CDF"
 		match.BlueDefense3 = r.PostFormValue("blueDefense3")
 		match.BlueDefense4 = r.PostFormValue("blueDefense4")
 		match.BlueDefense5 = r.PostFormValue("blueDefense5")
@@ -108,6 +108,7 @@ func renderDefenseSelection(w http.ResponseWriter, r *http.Request, errorMessage
 // Takes a slice of the defenses in positions 2-5 and returns an error if they are not valid.
 func validateDefenseSelection(defenses []string) error {
 	// Build map to track which defenses have been used.
+	// FIXME UPDATE THIS
 	defenseCounts := make(map[string]int)
 	for _, defense := range placeableDefenses {
 		defenseCounts[defense] = 0

@@ -38,7 +38,11 @@
                     <option value="LB">{{index $.DefenseNames "LB"}}</option>
                   </select>
                 </div>
-                {{template "defense" dict "name" "redDefense2" "value" $match.RedDefense2 "defenseNames" $.DefenseNames}}
+                <div class="col-lg-2">
+                  <select class="form-control" disabled="true">
+                    <option value="CDF">{{index $.DefenseNames "CDF"}}</option>
+                  </select>
+                </div>
                 {{template "defense" dict "name" "redDefense3" "value" $match.RedDefense3 "defenseNames" $.DefenseNames}}
                 {{template "defense" dict "name" "redDefense4" "value" $match.RedDefense4 "defenseNames" $.DefenseNames}}
                 {{template "defense" dict "name" "redDefense5" "value" $match.RedDefense5 "defenseNames" $.DefenseNames}}
@@ -50,7 +54,11 @@
                     <option value="LB">{{index $.DefenseNames "LB"}}</option>
                   </select>
                 </div>
-                {{template "defense" dict "name" "blueDefense2" "value" $match.BlueDefense2 "defenseNames" $.DefenseNames}}
+                <div class="col-lg-2">
+                  <select class="form-control" disabled="true">
+                    <option value="CDF">{{index $.DefenseNames "CDF"}}</option>
+                  </select>
+                </div>
                 {{template "defense" dict "name" "blueDefense3" "value" $match.BlueDefense3 "defenseNames" $.DefenseNames}}
                 {{template "defense" dict "name" "blueDefense4" "value" $match.BlueDefense4 "defenseNames" $.DefenseNames}}
                 {{template "defense" dict "name" "blueDefense5" "value" $match.BlueDefense5 "defenseNames" $.DefenseNames}}
@@ -70,11 +78,12 @@
 <div class="col-lg-2">
   <select class="form-control" name="{{.name}}">
     <option value=""></option>
-    <option value="CDF"{{if eq .value "CDF"}} selected{{end}}>{{index .defenseNames "CDF"}}</option>
     <option value="M"{{if eq .value "M"}} selected{{end}}>{{index .defenseNames "M"}}</option>
     <option value="R"{{if eq .value "R"}} selected{{end}}>{{index .defenseNames "R"}}</option>
     <option value="RW"{{if eq .value "RW"}} selected{{end}}>{{index .defenseNames "RW"}}</option>
     <option value="RT"{{if eq .value "RT"}} selected{{end}}>{{index .defenseNames "RT"}}</option>
+    <option value="SP"{{if eq .value "SP"}} selected{{end}}>{{index .defenseNames "SP"}}</option>
+    <option value="DB"{{if eq .value "DB"}} selected{{end}}>{{index .defenseNames "DB"}}</option>
   </select>
 </div>
 {{end}}

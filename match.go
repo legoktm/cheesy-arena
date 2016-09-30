@@ -46,9 +46,12 @@ type Match struct {
 	BlueDefense5     string
 }
 
-var placeableDefenses = []string{"CDF", "M", "R", "RW", "RT"}
+var placeableDefenses = []string{"M", "R", "RW", "RT", "DB", "SP"}
+var cDefenses = []string{"M", "R"}
+var dDefenses = []string{"SP", "DB"}
+var eDefenses = []string{"RT", "RW"}
 var defenseNames = map[string]string{"LB": "Low Bar", "CDF": "Cheval de Frise", "M": "Moat",
-	"R": "Ramparts", "RW": "Rock Wall", "RT": "Rough Terrain"}
+	"R": "Ramparts", "RW": "Rock Wall", "RT": "Rough Terrain", "DB": "Drawbridge", "SP": "Sally Port"}
 
 func (database *Database) CreateMatch(match *Match) error {
 	return database.matchMap.Insert(match)
