@@ -147,7 +147,7 @@ var transitionBlankToIntro = function(callback) {
 };
 
 var transitionIntroToInMatch = function(callback) {
-  $("#logo").transition({queue: false, top: "35px"}, 500, "ease");
+  $("#logo").transition({queue: false, top: "15px", height: "75px"}, 500, "ease");
   $(".score").transition({queue: false, width: "250px"}, 500, "ease", function() {
     $(".score-number").transition({queue: false, opacity: 1}, 750, "ease");
     $(".score-fields").transition({queue: false, opacity: 1}, 750, "ease");
@@ -168,7 +168,7 @@ var transitionIntroToBlank = function(callback) {
 var transitionBlankToInMatch = function(callback) {
   $("#centering").transition({queue: false, bottom: "0px"}, 500, "ease", function() {
     $(".teams").transition({queue: false, width: "65px"}, 100, "linear", function() {
-      $("#logo").transition({queue: false, top: "35px"}, 500, "ease");
+      $("#logo").transition({queue: false, top: "15px", height: "75px"}, 500, "ease");
       $(".score").transition({queue: false, width: "250px"}, 500, "ease", function() {
         $("#eventMatchInfo").show();
         $(".score-number").transition({queue: false, opacity: 1}, 750, "ease");
@@ -185,7 +185,7 @@ var transitionInMatchToIntro = function(callback) {
   $(".score-number").transition({queue: false, opacity: 0}, 300, "linear");
   $(".score-fields").transition({queue: false, opacity: 0}, 300, "linear");
   $("#matchTime").transition({queue: false, opacity: 0}, 300, "linear", function() {
-    $("#logo").transition({queue: false, top: "50px"}, 500, "ease");
+    $("#logo").transition({queue: false, top: "20px", height: "115px"}, 500, "ease");
     $(".score").transition({queue: false, width: "120px"}, 500, "ease");
     $(".teams").transition({queue: false, width: "65px"}, 500, "ease", callback);
   });
@@ -197,7 +197,7 @@ var transitionInMatchToBlank = function(callback) {
   $(".score-fields").transition({queue: false, opacity: 0}, 300, "linear");
   $(".score-number").transition({queue: false, opacity: 0}, 300, "linear", function() {
     $("#eventMatchInfo").hide();
-    $("#logo").transition({queue: false, top: "50px"}, 500, "ease");
+    $("#logo").transition({queue: false, top: "20px", height: "115px"}, 500, "ease");
     $(".score").transition({queue: false, width: "0px"}, 500, "ease");
     $(".teams").transition({queue: false, width: "40px"}, 500, "ease", function() {
       $("#centering").transition({queue: false, bottom: "-340px"}, 1000, "ease", callback);
