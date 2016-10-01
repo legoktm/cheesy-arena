@@ -202,8 +202,10 @@ html {
 }
 #blindsLogo {
   position: relative;
-  top: 110px;
-  height: 75px;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  transform: translateY(-50%);
+  height: 75%;
 }
 #finalScore {
   position: fixed;
@@ -381,8 +383,8 @@ html {
   font-size: 3.5em;
 }
 #allianceSelectionTable img {
-  width: 7em;
-  margin: 0.75em;
+  width: 4em;
+  margin: 0.15em;
 }
 #allianceSelectionTable tr:nth-child(even) {
   background-color: #eee;
