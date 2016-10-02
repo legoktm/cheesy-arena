@@ -313,7 +313,7 @@ html {
 }
 #sponsor .carousel-inner, #sponsor .item {
   height: 100%;
-}
+}/*
 #sponsor h1, #sponsor h2 {
   font-family: "FuturaLTBold";
   margin: 0;
@@ -332,10 +332,10 @@ html {
 #sponsor h2 {
   font-size: 6em;
   padding-top: 150px;
-}
+}*/
 #sponsor img {
   max-width: 800px;
-  height: 400px;
+  /*height: 400px;*/
   margin-top: 50px;
   display: inline-block;
 }
