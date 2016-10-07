@@ -26,6 +26,12 @@
             {{.ErrorMessage}}
           </div>
         {{end}}
+        Audience selection:
+        <ul>
+        {{range $round, $group := .RandomDefenses}}
+          <li>{{$round}}: {{$group}}</li>
+        {{end}}
+        </ul>
         {{range $match := .Matches}}
           <div class="well">
             <form method="POST">
