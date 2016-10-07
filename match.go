@@ -48,7 +48,7 @@ type Match struct {
 
 var placeableDefenses = []string{"M", "R", "RW", "RT", "DB", "SP"}
 var cDefenses = []string{"M", "R"}
-var dDefenses = []string{"SP", "DB"}
+var dDefenses = []string{"SP"}
 var eDefenses = []string{"RT", "RW"}
 var defenseNames = map[string]string{"LB": "Low Bar", "CDF": "Cheval de Frise", "M": "Moat",
 	"R": "Ramparts", "RW": "Rock Wall", "RT": "Rough Terrain", "DB": "Drawbridge", "SP": "Sally Port"}

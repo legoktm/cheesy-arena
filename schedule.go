@@ -112,7 +112,7 @@ func randomizeDefenses(matches []Match, numTeams int) {
 	for i := 0; i < len(matches); i++ {
 		if i%matchesPerRound == 0 {
 			// Pick a new set of defenses.
-			setSlots = []string{cDefenses[rand.Intn(2)], dDefenses[rand.Intn(2)], eDefenses[rand.Intn(2)]}
+			setSlots = []string{cDefenses[rand.Intn(2)], dDefenses[0], eDefenses[rand.Intn(2)]}
 			// And randomly assign the slots
 			slots = rand.Perm(3)
 

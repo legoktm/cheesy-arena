@@ -122,7 +122,7 @@ func renderDefenseSelection(w http.ResponseWriter, r *http.Request, errorMessage
 	// QF = 4, SF = 2, F = 1, reset every eliminstance
 	humanName := map[int]string{4: "QF", 2: "SF", 1: "F"}
 	audDefPick := make(map[string]string)
-	defGroup := map[int]string{3: "C (M, R)", 4: "D (SP, DB)", 5: "E (RT, RW)"}
+	defGroup := map[int]string{3: "C (M, R)", 4: "D (SP)", 5: "E (RT, RW)"}
 	audDefPick["QF round 1"] = defGroup[start]
 
 	matches, err := db.GetMatchesByType("elimination")
@@ -203,7 +203,7 @@ func validateDefenseSelection(defenses []string) error {
 		}
 		if inSet(defense, dDefenses) {
 			if dCounts != 0 {
-				return fmt.Errorf("Can only use one defense from group D (SP, DB)")
+				return fmt.Errorf("Can only use one defense from group D (SP)")
 			}
 			dCounts++
 		}
