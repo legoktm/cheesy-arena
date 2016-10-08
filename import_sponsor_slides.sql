@@ -12,5 +12,4 @@ INSERT INTO "sponsor_slides" VALUES(10,'','','','noahs.png',4);
 INSERT INTO "sponsor_slides" VALUES(11,'','','','gumbas.png',4);
 INSERT INTO "sponsor_slides" VALUES(12,'','','','pasta.png',4);
 INSERT INTO "sponsor_slides" VALUES(13,'','','','pmh.png',4);
-INSERT INTO "sponsor_slides" VALUES(14,'','','','subway.png',4);
 
