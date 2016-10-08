@@ -108,6 +108,11 @@ func ScheduleRepublishPostHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Failed to publish matches: "+err.Error(), 500)
 			return
 		}
+		err = PublishRankings()
+		if err != nil {
+			http.Error(w, "Failed to publish rankings: "+err.Error(), 500)
+			return
+		}
 	} else {
 		http.Error(w, "TBA publishing is not enabled", 500)
 		return
