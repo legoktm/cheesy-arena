@@ -33,7 +33,6 @@ var handleStatus = function(data) {
       $("#status" + station + " .packet-loss").attr("data-status-ok", true);
       $("#status" + station + " .packet-loss").text(dsConn.MissedPacketCount);
     } else {
-      $("#status" + station + " .team").text(station.team.Id);
       $("#status" + station + " .ds-status").attr("data-status-ok", "");
       $("#status" + station + " .ds-status").text("");
       $("#status" + station + " .robot-status").attr("data-status-ok", "");
