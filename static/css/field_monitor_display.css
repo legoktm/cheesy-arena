@@ -50,3 +50,6 @@ body {
 .team[data-status=robot-linked] {
   background-color: #0a3;
 }
+.team[data-status=radio-linked] {
+  background-color: #ff00ff;
+}

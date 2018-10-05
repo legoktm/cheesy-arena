@@ -27,6 +27,8 @@ var handleArenaStatus = function(data) {
       } else if (stationStatus.DsConn) {
         if (stationStatus.DsConn.RobotLinked) {
           status = "robot-linked";
+        } else if (stationStatus.DsConn.RadioLinked) {
+          status = "radio-linked";
         } else if (stationStatus.DsConn.DsLinked) {
           status = "ds-linked";
         }
